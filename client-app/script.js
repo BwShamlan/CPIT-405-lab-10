@@ -1,11 +1,8 @@
 const apiUrl = 'http://localhost:3000/api';
-
 let todoListElem = document.getElementById("todoList");
 
 document.getElementById("add-btn").addEventListener("click", addNewTodo);
-
-
-
+document.getElementById("markAllDone-btn").addEventListener("click", markAllDone);
 
 document.body.onload = function () {
     fetchAllTodos().catch((e) => {
@@ -17,7 +14,6 @@ async function fetchAllTodos() {
     const response = await fetch(apiUrl + "/readAll.php");
     const todos = await response.json();
     if (todos && todos.length > 0) {
-        // create HTML elements
         for (let item of todos) {
             addItem(item);
         }
@@ -38,6 +34,7 @@ async function addNewTodo() {
         location.reload();
     }
 }
+
 async function markAsComplete(e) {
     const data = { id: this.id, done: true };
     const options = {
@@ -66,9 +63,6 @@ async function deleteTodo(e) {
     location.reload();
 }
 
-
-
-// Create the HTML elements for the new todo item
 function addItem(item) {
     let liElem = document.createElement("li");
     liElem.appendChild(document.createTextNode(item.task));
@@ -90,3 +84,28 @@ function addItem(item) {
     todoListElem.appendChild(liElem);
 }
 
+// Function to mark all items/tasks as done
+async function markAllDone() {
+    const todoItems = document.querySelectorAll("#todoList li");
+    
+    for (let item of todoItems) {
+        const itemId = item.querySelector(".span-btns span:first-child").id;
+        await markTodoAsComplete(itemId);
+    }
+    
+    location.reload();
+}
+
+// Function to mark a specific todo item as complete
+async function markTodoAsComplete(itemId) {
+    const data = { id: itemId, done: true };
+    const options = {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    };
+
+    await fetch(apiUrl + "/update.php", options);
+}

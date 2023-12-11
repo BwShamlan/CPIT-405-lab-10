@@ -101,4 +101,40 @@ class Todo
         }
         return false;
     }
+
+    // this is for "Show the tasks that were marked as done in a different web page"
+    public function readDone()
+    {
+        $query = "SELECT * FROM " . $this->dbTable . " WHERE done = true";
+        $stmt = $this->dbConnection->prepare($query);
+        if ($stmt->execute() && $stmt->rowCount() > 0) {
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        return [];
+    }
+
+    // this is for "Group the items by the date they were added on (e.g., today, last week, etc.)"
+    public function groupByDate()
+    {
+        $query = "SELECT * FROM " . $this->dbTable . " ORDER BY date_added DESC";
+        $stmt = $this->dbConnection->prepare($query);
+        if ($stmt->execute() && $stmt->rowCount() > 0) {
+            $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $groupedTasks = [];
+            
+            foreach ($tasks as $task) {
+                $dateAdded = date('Y-m-d', strtotime($task['date_added']));
+                
+                if (!isset($groupedTasks[$dateAdded])) {
+                    $groupedTasks[$dateAdded] = [];
+                }
+
+                $groupedTasks[$dateAdded][] = $task;
+            }
+
+            return $groupedTasks;
+        }
+        return [];
+    }
 }
